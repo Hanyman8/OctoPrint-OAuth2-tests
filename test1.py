@@ -14,31 +14,33 @@ class TestOctoPrintOAuth2(unittest.TestCase):
         self.driver = webdriver.Chrome(executable_path="/home/hany/Downloads/chromedriver")
         self.driver.implicitly_wait(10)
 
-    def test_login(self):
-        driver = self.driver
+    def login_octoprint(self):
+        self.driver.find_element_by_id("navbar_plugin_oauth2").click()
+        self.driver.find_element_by_id("loginForm").click()
 
-        driver.get("http://0.0.0.0:5000/")
-        driver.find_element_by_id("navbar_plugin_oauth2").click()
-        driver.find_element_by_id("loginForm").click()
+    def login_server(self):
+        self.assertIn("github", self.driver.current_url)
+        self.driver.find_element_by_id("login_field").send_keys(USERNAME)
+        self.driver.find_element_by_id("password").send_keys("FITtest1234")
+        self.driver.find_element_by_name("commit").click()
 
-        self.assertIn("github", driver.current_url)
-        driver.find_element_by_id("login_field").send_keys(USERNAME)
-        driver.find_element_by_id("password").send_keys("FITtest1234")
-        driver.find_element_by_name("commit").click()
+    def test_login_OK(self):
+
+        self.driver.get("http://0.0.0.0:5000/")
+
+        self.login_octoprint()
+        self.login_server()
         time.sleep(3)
 
         #give information to application
-        if "github" in driver.current_url:
-            driver.find_element_by_id("js-oauth-authorize-btn").click()
+        if "github" in self.driver.current_url:
+            self.driver.find_element_by_id("js-oauth-authorize-btn").click()
 
-        # print (driver.find_elements_by_xpath("//text()[contains(.,'fitctuoauth')]/ancestor::a[1]"))
-        # // text()[contains(., 'Hanyman8')] / ancestor::a[1]
-        list = driver.find_elements_by_xpath("// text()[contains(., '"+ USERNAME +"')] / ancestor::a[1]")
-        print(list.__len__())
+        list = self.driver.find_elements_by_xpath("// text()[contains(., '"+ USERNAME +"')] / ancestor::a[1]")
         self.assertEqual(list.__len__(), 1)
 
-# assert "fitctuoauth" in get_text_excluding_children(driver,"ui-pnotify-text")
-
+    def tearDown(self):
+        self.driver.quit()
 
 if __name__ == '__main__':
     unittest.main()
